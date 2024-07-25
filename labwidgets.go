@@ -448,10 +448,42 @@ func fontToSize(font Font, length int) Size {
 	return Size{Width: width, Height: height}
 }
 
-func MakeChannels[T bool | string](btn ...string) map[string]chan T {
-	chans := make(map[string]chan T, len(btn))
-	for _, v := range btn {
-		chans[v] = make(chan T, 1)
+type ControlDisablers struct {
+	chns map[string]chan bool
+}
+
+// Create a collection of control signals for enabling/disabling a group of widgets
+func NewDisablers(btn ...string) *ControlDisablers {
+	c := ControlDisablers{
+		chns: make(map[string]chan bool, len(btn)),
 	}
-	return chans
+
+	for name, _ := range c.chns {
+		c.chns[name] = make(chan bool, 1)
+	}
+	return &c
+}
+
+func (c *ControlDisablers) EnableAll() {
+	for _, chn := range c.chns {
+		chn <- true
+	}
+}
+
+func (c *ControlDisablers) DisableAll() {
+	for _, chn := range c.chns {
+		chn <- false
+	}
+}
+
+func (c *ControlDisablers) Enable(name string) {
+	if chn, ok := c.chns[name]; ok {
+		chn <- true
+	}
+}
+
+func (c *ControlDisablers) Disable(name string) {
+	if chn, ok := c.chns[name]; ok {
+		chn <- false
+	}
 }
