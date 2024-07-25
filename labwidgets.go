@@ -464,6 +464,14 @@ func NewDisablers(btn ...string) *ControlDisablers {
 	return &c
 }
 
+func (c *ControlDisablers) Get(name string) chan bool {
+	if chn, ok := c.chns[name]; ok {
+		return chn
+	} else {
+		return nil
+	}
+}
+
 func (c *ControlDisablers) EnableAll() {
 	for _, chn := range c.chns {
 		chn <- true
